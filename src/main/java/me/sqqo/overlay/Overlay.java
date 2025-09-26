@@ -3,8 +3,13 @@ package me.sqqo.overlay;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.sqqo.Pepita;
+import me.sqqo.events.PacketReceiveEvent;
+import me.sqqo.events.PreUpdateEvent;
+import me.sqqo.overlay.gui.GuiScreenOverlay;
 import me.sqqo.utils.Utils;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.server.S13PacketDestroyEntities;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -12,6 +17,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static me.sqqo.Pepita.mc;
 
@@ -21,12 +27,67 @@ public class Overlay {
     float posX = 3;
     float posY = 3;
 
-    private final DataProcessor dataProcessor = new DataProcessor(this::onPlayerData, 1500);
+    float namePos;
+    float fkdrPos;
+    float winsPos;
+    float lossesPos;
+    float winStreakPos;
+    float levelPos;
+
+    float tNamePos;
+    float tFkdrPos;
+    float tWinsPos;
+    float tLossesPos;
+    float tWinStreakPos;
+    float tLevelPos;
+
+    private final StringBuilder sb = new StringBuilder();
+
+    private final DataProcessor dataProcessor = new DataProcessor(this::onPlayerData, 20);
+
+    private final ConcurrentLinkedQueue<EntityPlayer> removeQueue = new ConcurrentLinkedQueue<>();
+    private int removeTicks = 5;
 
     private final ConcurrentHashMap<EntityPlayer, UserData> playersCache = new ConcurrentHashMap<>();
 
+    private static final String NICKED_TEXT = "§cNicked";
+
     public void init() {
         MinecraftForge.EVENT_BUS.register(this);
+
+        final float nameSize = mc.fontRendererObj.getStringWidth("12345678901234567890090912345678");
+        final float fkdrSize = mc.fontRendererObj.getStringWidth("1000.0000");
+
+        final float winsSize = mc.fontRendererObj.getStringWidth("10000000");
+        final float lossesSize = mc.fontRendererObj.getStringWidth("10000000");
+
+        final float winStreakSize = mc.fontRendererObj.getStringWidth("1000000");
+        final float levelSize = mc.fontRendererObj.getStringWidth("[--10000]");
+
+        float x = this.posX;
+
+        this.namePos = x + (nameSize / 2);
+        this.tNamePos = x;
+        x += nameSize;
+
+        this.fkdrPos = x + (fkdrSize / 2);
+        this.tFkdrPos = x;
+        x += fkdrSize;
+
+        this.winsPos = x + (winsSize / 2);
+        this.tWinsPos = x;
+        x += winsSize;
+
+        this.lossesPos = x + (lossesSize / 2);
+        this.tLossesPos = x;
+        x += lossesSize + 10;
+
+        this.winStreakPos = x + (winStreakSize / 2);
+        this.tWinStreakPos = x;
+        x += winStreakSize + 25;
+
+        this.levelPos = x + (levelSize / 2);
+        this.tLevelPos = x;
     }
 
     public void onPlayerData(EntityPlayer en, String data) {
@@ -106,7 +167,7 @@ public class Overlay {
     }
 
     @SubscribeEvent
-    public void onTick(TickEvent event) {
+    public void onPreUpdate(PreUpdateEvent event) {
         if (!toggled) {
             return;
         }
@@ -120,12 +181,25 @@ public class Overlay {
         }
 
         for (EntityPlayer en : mc.theWorld.playerEntities) {
-            if (Utils.isBot(en) || playersCache.containsKey(en) || dataProcessor.getDataQueue().contains(en) || dataProcessor.getWaitingQueue().contains(en) || en == mc.thePlayer) {
+            if (Utils.isBot(en, true) || playersCache.containsKey(en) || dataProcessor.getDataQueue().contains(en) || dataProcessor.getWaitingQueue().contains(en) || en == mc.thePlayer) {
                 continue;
             }
 
             this.dataProcessor.getDataQueue().add(en);
             this.dataProcessor.getWaitingQueue().add(en);
+        }
+
+        if (removeTicks >= 0) {
+            removeTicks--;
+
+            return;
+        }
+
+        for (EntityPlayer en : removeQueue) {
+            playersCache.remove(en);
+
+            dataProcessor.getDataQueue().remove(en);
+            dataProcessor.getWaitingQueue().remove(en);
         }
     }
 
@@ -139,6 +213,28 @@ public class Overlay {
     }
 
     @SubscribeEvent
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (!(event.getPacket() instanceof S13PacketDestroyEntities)) {
+            return;
+        }
+
+        S13PacketDestroyEntities packet = (S13PacketDestroyEntities) event.getPacket();
+
+        for (int i = 0; i < packet.getEntityIDs().length; i++) {
+            Entity e =  mc.theWorld.getEntityByID(packet.getEntityIDs()[i]);
+
+            if (!(e instanceof EntityPlayer)) {
+                continue;
+            }
+
+            EntityPlayer en = (EntityPlayer) e;
+
+            removeQueue.add(en);
+            removeTicks = 5;
+        }
+    }
+
+    @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
         if (!toggled || playersCache.isEmpty()) {
             return;
@@ -148,72 +244,69 @@ public class Overlay {
             return;
         }
 
-        final float nameSize = mc.fontRendererObj.getStringWidth("123456789012345678900909");
-        final float fkdrSize = mc.fontRendererObj.getStringWidth("1000.00");
-
-        final float winsSize = mc.fontRendererObj.getStringWidth("100000");
-        final float lossesSize = mc.fontRendererObj.getStringWidth("100000");
-
-        final float winStreakSize = mc.fontRendererObj.getStringWidth("10000");
-
-        float x = posX;
         float y = posY;
 
-        mc.fontRendererObj.drawStringWithShadow("§7Name", x, y, -1);
-        final float namePos = x;
-        x += nameSize;
+        mc.fontRendererObj.drawStringWithShadow("§7Name", this.namePos - s("§7Name"), y, -1);
 
-        mc.fontRendererObj.drawStringWithShadow("§7FKDR", x, y, -1);
-        final float fkdrPos = x;
-        x += fkdrSize;
+        mc.fontRendererObj.drawStringWithShadow("§7FKDR", this.fkdrPos - s("§7FKDR"), y, -1);
 
-        mc.fontRendererObj.drawStringWithShadow("§7Wins", x, y, -1);
-        final float winsPos = x;
-        x += winsSize;
+        mc.fontRendererObj.drawStringWithShadow("§7Wins", this.winsPos - s("§7Wins"), y, -1);
 
-        mc.fontRendererObj.drawStringWithShadow("§7Losses", x, y, -1);
-        final float lossesPos = x;
-        x += lossesSize + 10;
+        mc.fontRendererObj.drawStringWithShadow("§7Losses", this.lossesPos - s("§7Losses"), y, -1);
 
-        mc.fontRendererObj.drawStringWithShadow("§7Winstreak", x, y, -1);
-        final float winStreakPos = x;
-        x += winStreakSize + 25;
+        mc.fontRendererObj.drawStringWithShadow("§7Winstreak", this.winStreakPos - s("§7Winstreak"), y, -1);
 
-        mc.fontRendererObj.drawStringWithShadow("§7Level", x, y, -1);
-        final float levelPos = x;
+        mc.fontRendererObj.drawStringWithShadow("§7Level", this.levelPos - s("§7Level"), y, -1);
 
-        y += 11;
+        y += 12;
 
         for (Map.Entry<EntityPlayer, UserData> en : playersCache.entrySet()) {
             final boolean nicked = en.getValue().nicked;
             final String name = en.getKey().getDisplayName().getUnformattedText();
+            final float nameSize = mc.fontRendererObj.getStringWidth(name);
 
             if (nicked) {
-                mc.fontRendererObj.drawStringWithShadow(name, namePos, y, -1);
+                final float nickedSize = mc.fontRendererObj.getStringWidth(NICKED_TEXT);
 
-                mc.fontRendererObj.drawStringWithShadow("§cNicked", fkdrPos, y, -1);
+                mc.fontRendererObj.drawStringWithShadow(name, namePos - (nameSize / 2), y, -1);
 
-                mc.fontRendererObj.drawStringWithShadow("§cNicked", winsPos, y, -1);
-                mc.fontRendererObj.drawStringWithShadow("§cNicked", lossesPos, y, -1);
+                mc.fontRendererObj.drawStringWithShadow(NICKED_TEXT, fkdrPos - (nickedSize / 2), y, -1);
 
-                mc.fontRendererObj.drawStringWithShadow("§cNicked", winStreakPos, y, -1);
+                mc.fontRendererObj.drawStringWithShadow(NICKED_TEXT, winsPos - (nickedSize / 2), y, -1);
+                mc.fontRendererObj.drawStringWithShadow(NICKED_TEXT, lossesPos - (nickedSize / 2), y, -1);
 
-                mc.fontRendererObj.drawStringWithShadow("§cNicked", levelPos, y, -1);
+                mc.fontRendererObj.drawStringWithShadow(NICKED_TEXT, winStreakPos - (nickedSize / 2), y, -1);
+
+                mc.fontRendererObj.drawStringWithShadow(NICKED_TEXT, levelPos - (nickedSize / 2), y, -1);
             } else {
-                mc.fontRendererObj.drawStringWithShadow(name, namePos, y, -1);
+                final UserData data = en.getValue();
 
-                mc.fontRendererObj.drawStringWithShadow("§7" + en.getValue().fkdr, fkdrPos, y, -1);
+                mc.fontRendererObj.drawStringWithShadow(name, namePos - (nameSize / 2), y, -1);
 
-                mc.fontRendererObj.drawStringWithShadow("§7" + en.getValue().wins, winsPos, y, -1);
-                mc.fontRendererObj.drawStringWithShadow("§7" + en.getValue().losses, lossesPos, y, -1);
+                final String fkdrText = "§7" + (data.fkdr == -1 ? "-" : data.fkdr);
+                mc.fontRendererObj.drawStringWithShadow(fkdrText, fkdrPos - s(fkdrText), y, -1);
 
-                mc.fontRendererObj.drawStringWithShadow("§7" + en.getValue().winStreak, winStreakPos, y, -1);
+                sb.setLength(0);
+                sb.append("§7").append(data.wins == -1 ? "-" : data.wins);
+                mc.fontRendererObj.drawStringWithShadow(sb.toString(), winsPos - s(sb.toString()), y, -1);
 
-                mc.fontRendererObj.drawStringWithShadow(en.getValue().fLevel, levelPos, y, -1);
+                sb.setLength(0);
+                sb.append("§7").append(data.losses == -1 ? "-" : data.losses);
+                mc.fontRendererObj.drawStringWithShadow(sb.toString(), lossesPos - s(sb.toString()), y, -1);
+
+                sb.setLength(0);
+                sb.append("§7").append(data.winStreak == -1 ? "-" : data.winStreak);
+                mc.fontRendererObj.drawStringWithShadow(sb.toString(), winStreakPos - s(sb.toString()), y, -1);
+
+                mc.fontRendererObj.drawStringWithShadow(data.fLevel, levelPos - s(data.fLevel), y, -1);
             }
 
             y += 10;
         }
+    }
+
+    private float s(String text) {
+        return mc.fontRendererObj.getStringWidth(text) / 2F;
     }
 
     @SubscribeEvent
@@ -222,18 +315,13 @@ public class Overlay {
             this.toggled = !this.toggled;
         }
 
-        if (Pepita.clearKey.isPressed()) {
-            if (!this.dataProcessor.getDataQueue().isEmpty()) {
-                this.dataProcessor.getDataQueue().clear();
-            }
-
-            if (!this.dataProcessor.getWaitingQueue().isEmpty()) {
-                this.dataProcessor.getWaitingQueue().clear();
-            }
-
-            dataProcessor.currDelay = 0;
-            playersCache.clear();
+        if (Pepita.guiKey.isPressed() && mc.currentScreen == null) {
+            mc.displayGuiScreen(Pepita.getGuiOverlay());
         }
+    }
+
+    public DataProcessor getDataProcessor() {
+        return dataProcessor;
     }
 
     static class UserData {

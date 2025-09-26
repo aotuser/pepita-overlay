@@ -10,8 +10,8 @@ import java.math.RoundingMode;
 import static me.sqqo.Pepita.mc;
 
 public class Utils {
-    public static boolean isBot(EntityPlayer en) {
-        return Minecraft.getMinecraft().getNetHandler().getPlayerInfo(en.getUniqueID()) == null;
+    public static boolean isBot(EntityPlayer en, boolean strict) {
+        return Minecraft.getMinecraft().getNetHandler().getPlayerInfo(en.getUniqueID()) == null || (!en.getDisplayName().getUnformattedText().startsWith("§") && strict);
     }
 
     public static void print(String str, Object... args) {

@@ -1,9 +1,15 @@
 buildscript {
     repositories {
         maven { url "https://maven.minecraftforge.net" }
+
+        maven {
+            name = "sponge"
+            url = "https://repo.spongepowered.org/maven/"
+        }
     }
     dependencies {
         classpath "net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT"
+        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
 }
 
@@ -13,6 +19,7 @@ plugins {
 }
 
 apply plugin: "net.minecraftforge.gradle.forge"
+apply plugin: 'org.spongepowered.mixin'
 
 version = "2.0.1"
 group = "pepita_overlay"
@@ -26,6 +33,15 @@ minecraft {
     runDir = "run"
     mappings = "stable_22"
     makeObfSourceJar = false
+
+    clientRunArgs = [ "--username", "sempescocobro" ]
+    clientJvmArgs += '-Dfml.coreMods.load=me.sqqo.mixins.MixinLoader'
+}
+
+mixin {
+    defaultObfuscationEnv "searge"
+
+    add sourceSets.main, "mixins.pepita_overlay.refmap.json"
 }
 
 configurations {
@@ -35,9 +51,17 @@ configurations {
 
 repositories {
     maven { url "https://maven.minecraftforge.net" }
+
+    maven {
+        name = "sponge"
+        url = "https://repo.spongepowered.org/maven/"
+    }
 }
 
 dependencies {
+    implementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
+    shade 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+    compileOnly 'org.jetbrains:annotations:24.0.1'
     shade 'com.squareup.okhttp3:okhttp:3.14.9'
 }
 
@@ -65,6 +89,13 @@ shadowJar {
 
     relocate 'okhttp3', 'pepita_overlay.shaded.okhttp3'
     relocate 'okio', 'pepita_overlay.shaded.okio'
+
+    manifest {
+        attributes(
+                'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+                'MixinConfigs': 'mixins.pepita.json'
+        )
+    }
 }
 
 reobf {

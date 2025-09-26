@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "me.sqqo.mixins",
+  "refmap": "mixins.pepita.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "MixinEntityPlayerSP",
+    "MixinNetworkManager",
+    "MixinWorld"
+  ]
+}

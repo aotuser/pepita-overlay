@@ -1,5 +1,6 @@
 package me.sqqo.overlay;
 
+import me.sqqo.Pepita;
 import net.minecraft.entity.player.EntityPlayer;
 import okhttp3.*;
 import okhttp3.internal.annotations.EverythingIsNonNull;
@@ -13,15 +14,12 @@ public class DataProcessor {
 
     private final CallBack<EntityPlayer, String> callBack;
 
-    private final long ticksDelay;
-
     public long currDelay = 0;
 
     private final ConcurrentLinkedQueue<EntityPlayer> dataQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<EntityPlayer> waitingQueue = new ConcurrentLinkedQueue<>();
 
     public DataProcessor(final CallBack<EntityPlayer, String> callBack, final long ticksDelay) {
-        this.ticksDelay = ticksDelay;
         this.callBack = callBack;
 
         new Thread(this::processData).start();
@@ -31,8 +29,8 @@ public class DataProcessor {
         while (true) {
             EntityPlayer curr = null;
 
-            if (!dataQueue.isEmpty() && currDelay <= 0) {
-                curr = dataQueue.remove();
+            if (currDelay <= 0) {
+                curr = dataQueue.poll();
             }
 
             if (curr == null) {
@@ -41,7 +39,7 @@ public class DataProcessor {
 
             sendRequest(curr, this.callBack);
 
-            currDelay = ticksDelay;
+            currDelay = Pepita.config.getRequestsDelay();
         }
     }
 
