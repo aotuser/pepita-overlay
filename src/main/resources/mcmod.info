@@ -1,0 +1,16 @@
+[
+{
+  "modid": "pepita_overlay",
+  "name": "Pepita Overlay",
+  "description": "A overlay for MushMC.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["sqqo", "viniciusroger"],
+  "credits": "sqqo and viniciusroger, the creators of this overlay.",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
