@@ -4,8 +4,10 @@
   "refmap": "mixins.pepita.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "MixinEntityPlayerSP",
     "MixinNetworkManager",
     "MixinWorld"
+  ],
+  "client": [
+    "MixinEntityPlayerSP"
   ]
 }

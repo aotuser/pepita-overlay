@@ -11,12 +11,12 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import org.lwjgl.input.Keyboard;
 
 /**
- * Credits to viniciusroger (rogeiro) e sqqo (eu) for creating the Pepita Overlay.
+ * Credits to viniciusroger (rogeiro) and sqqo (me) for creating the Pepita Overlay.
  */
 @Mod(modid = Pepita.MOD_ID, version = Pepita.VERSION)
 public class Pepita {
     public static final String MOD_ID = "pepita_overlay";
-    public static final String VERSION = "2.0.1";
+    public static final String VERSION = "2.0.2";
 
     public static Minecraft mc = null;
 

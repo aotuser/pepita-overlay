@@ -3,7 +3,7 @@ package me.sqqo.overlay;
 import me.sqqo.Pepita;
 import net.minecraft.entity.player.EntityPlayer;
 import okhttp3.*;
-import okhttp3.internal.annotations.EverythingIsNonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -49,13 +49,11 @@ public class DataProcessor {
 
         client.newCall(request).enqueue(new Callback() {
             @Override
-            @EverythingIsNonNull
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
             }
 
             @Override
-            @EverythingIsNonNull
-            public void onResponse(Call call, Response response) {
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
                 if (response.body() != null) {
                     try {
                         String data = response.body().string();

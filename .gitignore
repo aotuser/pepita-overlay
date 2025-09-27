@@ -1,23 +1,6 @@
-# eclipse
-bin
-*.launch
-.settings
-.metadata
-.classpath
-.project
-
-# idea
-out
-*.ipr
-*.iws
-*.iml
-/.idea/*
-!/.idea/artifacts
-
-# gradle
-build
-.gradle
-
-# other
-eclipse
-run
+.idea/
+.vscode/
+run/
+build/
+.gradle/
+.github/

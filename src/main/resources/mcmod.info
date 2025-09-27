@@ -1,16 +1,18 @@
 [
-{
-  "modid": "pepita_overlay",
-  "name": "Pepita Overlay",
-  "description": "A overlay for MushMC.",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "",
-  "updateUrl": "",
-  "authorList": ["sqqo", "viniciusroger"],
-  "credits": "sqqo and viniciusroger",
-  "logoFile": "",
-  "screenshots": [],
-  "dependencies": []
-}
+  {
+    "modid": "${modid}",
+    "name": "Pepita Overlay",
+    "description": "A status overlay mod focused on MushMC.",
+    "version": "2.0.1",
+    "mcversion": "1.8.9",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "sqqo"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
 ]
