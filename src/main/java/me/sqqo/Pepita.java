@@ -16,7 +16,7 @@ import org.lwjgl.input.Keyboard;
 @Mod(modid = Pepita.MOD_ID, version = Pepita.VERSION)
 public class Pepita {
     public static final String MOD_ID = "pepita_overlay";
-    public static final String VERSION = "2.0.2";
+    public static final String VERSION = "2.0.1";
 
     public static Minecraft mc = null;
 

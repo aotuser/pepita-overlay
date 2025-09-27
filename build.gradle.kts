@@ -9,10 +9,7 @@ plugins {
 }
 
 val baseGroup: String by project
-val mcVersion: String by project
-val version: String by project
-val mixinGroup = "$baseGroup.mixin"
-val modid: String by project
+version = "2.0.1"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
@@ -85,7 +82,7 @@ tasks.withType(JavaCompile::class) {
 }
 
 tasks.withType(org.gradle.jvm.tasks.Jar::class) {
-    archiveBaseName.set("pepita-overlay-2.0.1")
+    archiveBaseName.set("pepita-overlay")
     manifest.attributes.run {
         this["FMLCorePluginContainsFMLMod"] = "true"
         this["ForceLoadAsMod"] = "true"
