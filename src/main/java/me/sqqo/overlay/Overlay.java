@@ -171,6 +171,19 @@ public class Overlay {
 
     @SubscribeEvent
     public void onPreUpdate(PreUpdateEvent event) {
+        if (removeTicks <= 0) {
+            for (EntityPlayer en : removeQueue) {
+                playersCache.remove(en);
+
+                dataProcessor.getDataQueue().remove(en);
+                dataProcessor.getWaitingQueue().remove(en);
+            }
+
+            removeQueue.clear();
+        } else {
+            removeTicks--;
+        }
+
         if (!toggled) {
             return;
         }
@@ -191,21 +204,6 @@ public class Overlay {
             this.dataProcessor.getDataQueue().add(en);
             this.dataProcessor.getWaitingQueue().add(en);
         }
-
-        if (removeTicks >= 0) {
-            removeTicks--;
-
-            return;
-        }
-
-        for (EntityPlayer en : removeQueue) {
-            playersCache.remove(en);
-
-            dataProcessor.getDataQueue().remove(en);
-            dataProcessor.getWaitingQueue().remove(en);
-        }
-
-        removeQueue.clear();
     }
 
     @SubscribeEvent
@@ -249,6 +247,10 @@ public class Overlay {
             return;
         }
 
+        if (mc.currentScreen != null) {
+            return;
+        }
+
         float y = posY;
 
         mc.fontRendererObj.drawStringWithShadow("§7Name", this.namePos - s("§7Name"), y, -1);
@@ -288,7 +290,7 @@ public class Overlay {
 
                 mc.fontRendererObj.drawStringWithShadow(name, namePos - (nameSize / 2), y, -1);
 
-                final String fkdrText = "§7" + (data.fkdr == -1 ? "-" : data.fkdr);
+                final String fkdrText = (data.fkdr == -1 ? "-" : getFKDRText(data.fkdr));
                 mc.fontRendererObj.drawStringWithShadow(fkdrText, fkdrPos - s(fkdrText), y, -1);
 
                 sb.setLength(0);
@@ -314,14 +316,32 @@ public class Overlay {
         return mc.fontRendererObj.getStringWidth(text) / 2F;
     }
 
+    private String getFKDRText(final float fkdr) {
+        String f = "§7";
+
+        if (fkdr >= 20) {
+            f = "§c";
+        } else if (fkdr >= 5) {
+            f = "§e";
+        }
+
+        return f + fkdr;
+    }
+
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        boolean pressed = Keyboard.isKeyDown(Pepita.toggleKey.getKeyCode());
+        if (mc.currentScreen == null) {
+            boolean pressed = Keyboard.isKeyDown(Pepita.toggleKey.getKeyCode());
 
-        if (pressed && !flag) {
-            this.toggled = !this.toggled;
-            flag = true;
-        } else if (!pressed) {
+            if (pressed && !flag) {
+                this.toggled = !this.toggled;
+                flag = true;
+            }
+
+            if (!pressed) {
+                flag = false;
+            }
+        } else {
             flag = false;
         }
 
