@@ -33,11 +33,11 @@ loom {
     }
     forge {
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
-        mixinConfig("mixins.raven.json")
+        mixinConfig("mixins.pepita.json")
     }
 
     mixin {
-        defaultRefmapName.set("mixins.raven.refmap.json")
+        defaultRefmapName.set("mixins.pepita.refmap.json")
     }
 }
 
