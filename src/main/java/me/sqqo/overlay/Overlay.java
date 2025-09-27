@@ -14,6 +14,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.lwjgl.input.Keyboard;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +41,8 @@ public class Overlay {
     float tLossesPos;
     float tWinStreakPos;
     float tLevelPos;
+
+    private boolean flag;
 
     private final StringBuilder sb = new StringBuilder();
 
@@ -201,6 +204,8 @@ public class Overlay {
             dataProcessor.getDataQueue().remove(en);
             dataProcessor.getWaitingQueue().remove(en);
         }
+
+        removeQueue.clear();
     }
 
     @SubscribeEvent
@@ -311,8 +316,13 @@ public class Overlay {
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        if (Pepita.toggleKey.isPressed()) {
+        boolean pressed = Keyboard.isKeyDown(Pepita.toggleKey.getKeyCode());
+
+        if (pressed && !flag) {
             this.toggled = !this.toggled;
+            flag = true;
+        } else if (!pressed) {
+            flag = false;
         }
 
         if (Pepita.guiKey.isPressed() && mc.currentScreen == null) {

@@ -23,7 +23,7 @@ public class Pepita {
     public static final Overlay OVERLAY = new Overlay();
     private static final GuiScreenOverlay guiOverlay = new GuiScreenOverlay();
 
-    public static final KeyBinding toggleKey = new KeyBinding("Toggle Bind", Keyboard.KEY_B, "Pepita Overlay");
+    public static final KeyBinding toggleKey = new KeyBinding("Toggle Bind", Keyboard.KEY_B, "");
     public static final KeyBinding guiKey = new KeyBinding("Gui Bind", Keyboard.KEY_INSERT, "Pepita Overlay");
 
     public static final Config config = new Config();
